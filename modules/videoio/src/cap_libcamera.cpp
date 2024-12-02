@@ -129,6 +129,7 @@ void LibcameraApp::ConfigureStill(unsigned int flags)
 		configuration_->at(0).pixelFormat = libcamera::formats::RGB888;
 	else
 		configuration_->at(0).pixelFormat = libcamera::formats::YUV420;
+
 	if ((flags & FLAG_STILL_BUFFER_MASK) == FLAG_STILL_DOUBLE_BUFFER)
 		configuration_->at(0).bufferCount = 2;
 	else if ((flags & FLAG_STILL_BUFFER_MASK) == FLAG_STILL_TRIPLE_BUFFER)
@@ -801,6 +802,38 @@ bool LibcameraCapture::stopPhoto()
         LibcameraCapture::app->CloseCamera();
     }
     return true;
+}
+
+
+bool LibcameraCapture::getVideoFrame(cv::Mat &frame, unsigned int timeout)
+{
+    if(!running.load(std::memory_order_acquire)) return false;
+    auto start_time = std::chrono::high_resolution_clock::now();
+    bool timeout_reached = false;
+    timespec req;
+    req.tv_sec=0;
+    req.tv_nsec=1000000;//1ms
+    while((!frameready.load(std::memory_order_acquire)) && (!timeout_reached)){
+        nanosleep(&req,NULL);
+        timeout_reached = (std::chrono::high_resolution_clock::now() - start_time > std::chrono::milliseconds(timeout));
+    }
+    if(frameready.load(std::memory_order_acquire)){
+        // Mat frame(vh,vw,CV_8UC3);
+        uint ls = vw*3;
+
+        mtx.lock();
+        uint8_t *ptr = framebuffer;
+        for (unsigned int i = 0; i < vh; i++, ptr += vstr)
+            memcpy(frame.ptr(i),ptr,ls);
+        mtx.unlock();
+        frameready.store(false, std::memory_order_release);;
+        
+        return true;
+    }
+    else
+        return false;
+
+
 }
 
 bool LibcameraCapture::capturePhoto(cv::Mat &frame)
