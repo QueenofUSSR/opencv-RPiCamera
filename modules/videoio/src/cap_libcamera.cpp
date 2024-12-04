@@ -29,8 +29,8 @@
 #include <libcamera/formats.h>
 #include <libcamera/framebuffer_allocator.h>
 #include <libcamera/property_ids.h>
-#inclued <libcamera/stream.h>
-#include <cap_libcamera.hpp>
+#include <libcamera/stream.h>
+#include "cap_libcamera.hpp"
 
 
 /**
@@ -129,7 +129,6 @@ void LibcameraApp::ConfigureStill(unsigned int flags)
 		configuration_->at(0).pixelFormat = libcamera::formats::RGB888;
 	else
 		configuration_->at(0).pixelFormat = libcamera::formats::YUV420;
-
 	if ((flags & FLAG_STILL_BUFFER_MASK) == FLAG_STILL_DOUBLE_BUFFER)
 		configuration_->at(0).bufferCount = 2;
 	else if ((flags & FLAG_STILL_BUFFER_MASK) == FLAG_STILL_TRIPLE_BUFFER)
@@ -583,33 +582,33 @@ void LibcameraApp::configureDenoise(const std::string &denoise_mode)
 
 double LibcameraApp::GetProperty(int property_id) const {
     switch (property_id) {
-        case cv::CAP_PROP_FRAME_WIDTH: // 获取帧宽度
+        case cv::CAP_PROP_FRAME_WIDTH:
             if (configuration_) {
                 return configuration_->at(0).size.width;
             }
             break;
 
-        case cv::CAP_PROP_FRAME_HEIGHT: // 获取帧高度
+        case cv::CAP_PROP_FRAME_HEIGHT: // 获取帧高�?
             if (configuration_) {
                 return configuration_->at(0).size.height;
             }
             break;
 
-        case cv::CAP_PROP_FPS: // 获取帧率
-            if (configuration_) {
-                auto duration = configuration_->at(0).frameDuration;
-                return 1e9 / duration.min; // 帧率 = 1 / 最小帧持续时间
-            }
-            break;
+        // case cv::CAP_PROP_FPS: // 获取帧率
+        //     if (configuration_) {
+        //         auto duration = configuration_->at(0).frameDuration;
+        //         return 1e9 / duration.min; // 帧率 = 1 / 最小帧持续时间
+        //     }
+        //     break;
 
-        case cv::CAP_PROP_EXPOSURE: // 获取曝光时间
-            if (camera_) {
-                libcamera::ControlList controls = camera_->controls();
-                if (controls.contains(libcamera::controls::ExposureTime)) {
-                    return controls.get<libcamera::controls::ExposureTime>();
-                }
-            }
-            break;
+        // case cv::CAP_PROP_EXPOSURE: // 获取曝光时间
+        //     if (camera_) {
+        //         libcamera::ControlList controls = camera_->controls();
+        //         if (controls.contains(libcamera::controls::ExposureTime)) {
+        //             return controls.get<libcamera::controls::ExposureTime>();
+        //         }
+        //     }
+        //     break;
 
         default:
             std::cerr << "GetProperty: Unsupported property_id " << property_id << std::endl;
@@ -649,35 +648,35 @@ bool LibcameraApp::SetProperty(int property_id, double value) {
             }
             break;
         }
-        case cv::CAP_PROP_FPS: {
-            if (configuration_) {
-                if (value <= 0) {
-                    std::cerr << "SetProperty: Invalid FPS value " << value << std::endl;
-                    return false;
-                }
-                int64_t frame_duration = 1e9 / static_cast<int>(value); 
-                configuration_->at(0).frameDuration = {frame_duration, frame_duration};
-                return camera_->configure(configuration_.get()) == 0; 
-            }
-            break;
-        }
-        case cv::CAP_PROP_EXPOSURE: {
-            if (camera_) {
-                const auto& controlsInfo = camera_->controls();
-                if (controlsInfo.contains(libcamera::controls::ExposureTime)) {
-                    auto range = controlsInfo.at(libcamera::controls::ExposureTime).range();
-                    if (value < range.min || value > range.max) {
-                        std::cerr << "SetProperty: Exposure value " << value << " is out of range (" 
-                                  << range.min << " - " << range.max << ")" << std::endl;
-                        return false;
-                    }
-                }
-                libcamera::ControlList controls(camera_->controls());
-                controls.set(libcamera::controls::ExposureTime, static_cast<int64_t>(value));
-                return camera_->start(&controls) == 0; // restart camera with new exposure time (To be verified)
-            }
-            break;
-        }
+        // case cv::CAP_PROP_FPS: {
+        //     if (configuration_) {
+        //         if (value <= 0) {
+        //             std::cerr << "SetProperty: Invalid FPS value " << value << std::endl;
+        //             return false;
+        //         }
+        //         int64_t frame_duration = 1e9 / static_cast<int>(value); 
+        //         configuration_->at(0).frameDuration = {frame_duration, frame_duration};
+        //         return camera_->configure(configuration_.get()) == 0; 
+        //     }
+        //     break;
+        // }
+        // case cv::CAP_PROP_EXPOSURE: {
+        //     if (camera_) {
+        //         const auto& controlsInfo = camera_->controls();
+        //         if (controlsInfo.contains(libcamera::controls::ExposureTime)) {
+        //             auto range = controlsInfo.at(libcamera::controls::ExposureTime).range();
+        //             if (value < range.min || value > range.max) {
+        //                 std::cerr << "SetProperty: Exposure value " << value << " is out of range (" 
+        //                           << range.min << " - " << range.max << ")" << std::endl;
+        //                 return false;
+        //             }
+        //         }
+        //         libcamera::ControlList controls(camera_->controls());
+        //         controls.set(libcamera::controls::ExposureTime, static_cast<int64_t>(value));
+        //         return camera_->start(&controls) == 0; // restart camera with new exposure time (To be verified)
+        //     }
+        //     break;
+        // }
         default:
             std::cerr << "SetProperty: Unsupported property_id " << property_id << std::endl;
             break;
@@ -718,7 +717,7 @@ public:
     virtual int getCaptureDomain() CV_OVERRIDE { return cv::CAP_LIBCAMERA; } // Need to modify videoio.hpp/enum VideoCaptureAPIs
     // bool configureHW(const cv::VideoCaptureParameters&);
     // bool configureStreamsProperty(const cv::VideoCaptureParameters&);
-    bool isOpened() const CV_OVERRIDE { return camerastarted; }
+    bool isOpened() const CV_OVERRIDE { return true; } //camerastarted
 
 protected:
 
@@ -802,38 +801,6 @@ bool LibcameraCapture::stopPhoto()
         LibcameraCapture::app->CloseCamera();
     }
     return true;
-}
-
-
-bool LibcameraCapture::getVideoFrame(cv::Mat &frame, unsigned int timeout)
-{
-    if(!running.load(std::memory_order_acquire)) return false;
-    auto start_time = std::chrono::high_resolution_clock::now();
-    bool timeout_reached = false;
-    timespec req;
-    req.tv_sec=0;
-    req.tv_nsec=1000000;//1ms
-    while((!frameready.load(std::memory_order_acquire)) && (!timeout_reached)){
-        nanosleep(&req,NULL);
-        timeout_reached = (std::chrono::high_resolution_clock::now() - start_time > std::chrono::milliseconds(timeout));
-    }
-    if(frameready.load(std::memory_order_acquire)){
-        // Mat frame(vh,vw,CV_8UC3);
-        uint ls = vw*3;
-
-        mtx.lock();
-        uint8_t *ptr = framebuffer;
-        for (unsigned int i = 0; i < vh; i++, ptr += vstr)
-            memcpy(frame.ptr(i),ptr,ls);
-        mtx.unlock();
-        frameready.store(false, std::memory_order_release);;
-        
-        return true;
-    }
-    else
-        return false;
-
-
 }
 
 bool LibcameraCapture::capturePhoto(cv::Mat &frame)
