@@ -1215,9 +1215,9 @@ CvResult CV_API_CALL cv_capture_open_with_params(
         cap = new LibcameraCapture();
         bool res;
         if (filename)
-            res = cap->open(std::string(filename), parameters);
+            res = cap->open(std::string(filename));
         else
-            res = cap->open(camera_index, parameters);
+            res = cap->open(camera_index);
         if (res)
         {
             *handle = (CvPluginCapture)cap;
