@@ -9,8 +9,8 @@ endif()
 
 if(HAVE_LIBCAMERA)
   if((CMAKE_CXX_STANDARD EQUAL 98) OR (CMAKE_CXX_STANDARD LESS 17))
-    message(STATUS "CMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD} is too old to support libcamera. Use C++17 or later. Turning HAVE_LIBCAMERA off")
-    set(HAVE_LIBCAMERA FALSE)
+    message(WARNING "CMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD} is too old to support libcamera. Use C++17 or later.")
+    # set(HAVE_LIBCAMERA FALSE)
   endif()
 endif()
 
